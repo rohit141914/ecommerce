@@ -29,5 +29,5 @@ docker-compose.override.yml
 # Ignore node modules if any
 node_modules/
 
-# Don't ignore target directory (we need the JAR file)
-# target/
+# Ignore target directory for Render (it will build fresh)
+target/

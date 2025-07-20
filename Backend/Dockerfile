@@ -1,11 +1,27 @@
-# Simple runtime-only Dockerfile
+# Build stage
+FROM eclipse-temurin:21-jdk AS build
+
+# Set working directory
+WORKDIR /app
+
+# Install Maven
+RUN apt-get update && apt-get install -y maven && rm -rf /var/lib/apt/lists/*
+
+# Copy pom.xml and source code
+COPY pom.xml .
+COPY src src
+
+# Build the application
+RUN mvn clean package -DskipTests -B
+
+# Runtime stage
 FROM eclipse-temurin:21-jre
 
 # Set working directory
 WORKDIR /app
 
-# Copy the pre-built JAR file
-COPY target/*.jar app.jar
+# Copy the built JAR file from build stage
+COPY --from=build /app/target/*.jar app.jar
 
 # Create a non-root user for security
 RUN groupadd -r appuser && useradd -r -g appuser appuser
