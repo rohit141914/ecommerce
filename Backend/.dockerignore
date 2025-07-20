@@ -1,0 +1,33 @@
+# Ignore IDE files
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+
+# Ignore OS files
+.DS_Store
+Thumbs.db
+
+# Ignore logs
+*.log
+logs/
+
+# Ignore temporary files
+*.tmp
+*.temp
+
+# Ignore Git
+.git/
+.gitignore
+
+# Ignore Docker files themselves
+docker-compose.yml
+docker-compose.override.yml
+.dockerignore
+
+# Ignore node modules if any
+node_modules/
+
+# Don't ignore target directory (we need the JAR file)
+# target/
