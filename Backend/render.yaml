@@ -5,10 +5,3 @@ services:
     dockerfilePath: ./Dockerfile
     plan: free
     healthCheckPath: /api/products
-    envVars:
-      - key: SPRING_DATA_MONGODB_URI
-        value: mongodb+srv://rohitnainindian:18182112@cluster0.vqnr7.mongodb.net
-      - key: SPRING_DATA_MONGODB_DATABASE
-        value: ecommerce-java
-      - key: SERVER_PORT
-        value: 8080
