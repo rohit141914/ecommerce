@@ -3,12 +3,15 @@ import { Link } from "react-router-dom";
 import axios from "axios";
 import AppContext from "../Context/Context";
 import unplugged from "../assets/unplugged.png";
+import { toast } from "react-toastify";
 
 const Home = ({ selectedCategory }) => {
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
   const { data, isError, addToCart, refreshData } = useContext(AppContext);
   const [products, setProducts] = useState([]);
   const [isDataFetched, setIsDataFetched] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [showColdStartMsg, setShowColdStartMsg] = useState(false);
   const imageCache = useRef({});
 
   useEffect(() => {
@@ -19,7 +22,21 @@ const Home = ({ selectedCategory }) => {
   }, [refreshData, isDataFetched]);
 
   useEffect(() => {
+    let timer;
+    if (isLoading) {
+      setShowColdStartMsg(false);
+      timer = setTimeout(() => {
+        setShowColdStartMsg(true);
+      }, 5000);
+    } else {
+      setShowColdStartMsg(false);
+    }
+    return () => clearTimeout(timer);
+  }, [isLoading]);
+
+  useEffect(() => {
     if (data && data.length > 0) {
+      setIsLoading(true);
       const fetchImagesAndUpdateProducts = async () => {
         const updatedProducts = await Promise.all(
           data.map(async (product) => {
@@ -47,9 +64,11 @@ const Home = ({ selectedCategory }) => {
           })
         );
         setProducts(updatedProducts);
+        setIsLoading(false);
       };
-
       fetchImagesAndUpdateProducts();
+    } else {
+      setIsLoading(false);
     }
   }, [data]);
 
@@ -66,6 +85,46 @@ const Home = ({ selectedCategory }) => {
           style={{ width: "100px", height: "100px" }}
         />
       </h2>
+    );
+  }
+  if (isLoading) {
+    return (
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "60vh",
+        }}
+      >
+        <div
+          className="spinner-border text-primary"
+          role="status"
+          style={{ width: "4rem", height: "4rem" }}
+        >
+          <span className="visually-hidden">Loading...</span>
+        </div>
+        <div
+          style={{
+            marginTop: "2rem",
+            fontSize: "1.2rem",
+            color: "#555",
+            textAlign: "center",
+            maxWidth: "400px",
+          }}
+        >
+          <b>Loading products...</b>
+          <br />
+          {showColdStartMsg && (
+            <span>
+              This may take up to 1 minute due to free tier backend cold start.
+              <br />
+              Please wait...
+            </span>
+          )}
+        </div>
+      </div>
     );
   }
   return (
@@ -177,6 +236,16 @@ const Home = ({ selectedCategory }) => {
                       onClick={(e) => {
                         e.preventDefault();
                         addToCart(product);
+                        toast.success("Added to cart!", {
+                          position: "top-right",
+                          autoClose: 2000,
+                          hideProgressBar: false,
+                          closeOnClick: true,
+                          pauseOnHover: true,
+                          draggable: true,
+                          progress: undefined,
+                          theme: "colored",
+                        });
                       }}
                       disabled={!stockQuantity}
                     >

@@ -4,6 +4,7 @@ import { useState } from "react";
 import AppContext from "../Context/Context";
 import axios from "../axios";
 import UpdateProduct from "./UpdateProduct";
+import { toast } from "react-toastify";
 const Product = () => {
   const { id } = useParams();
   const { data, addToCart, removeFromCart, cart, refreshData } =
@@ -41,8 +42,16 @@ const Product = () => {
     try {
       await axios.delete(`${BACKEND_URL}/api/product/${id}`);
       removeFromCart(id);
-      console.log("Product deleted successfully");
-      alert("Product deleted successfully");
+      toast.success("Product deleted successfully", {
+        position: "top-right",
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "colored",
+      });
       refreshData();
       navigate("/");
     } catch (error) {
@@ -56,7 +65,16 @@ const Product = () => {
 
   const handleAddToCart = () => {
     addToCart(product);
-    alert("Product added to cart");
+    toast.success("Added to cart!", {
+      position: "top-right",
+      autoClose: 2000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: "colored",
+    });
   };
   if (!product) {
     return (

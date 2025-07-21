@@ -3,6 +3,7 @@ import AppContext from "../Context/Context";
 import axios from "axios";
 import CheckoutPopup from "./CheckoutPopup";
 import { Button } from "react-bootstrap";
+import { toast } from "react-toastify";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
@@ -83,7 +84,16 @@ const Cart = () => {
         if (item.quantity < item.stockQuantity) {
           return { ...item, quantity: item.quantity + 1 };
         } else {
-          alert("Cannot add more than available stock");
+          toast.error("Cannot add more than available stock", {
+            position: "top-right",
+            autoClose: 2000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "colored",
+          });
         }
       }
       return item;

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
+import { toast } from "react-toastify";
 
 const UpdateProduct = () => {
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
@@ -72,13 +73,28 @@ const UpdateProduct = () => {
         },
       })
       .then((response) => {
-        console.log("Product updated successfully:", updatedProduct);
-        alert("Product updated successfully!");
+        toast.success("Product updated successfully", {
+          position: "top-right",
+          autoClose: 2000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "colored",
+        });
       })
       .catch((error) => {
-        console.error("Error updating product:", error);
-        console.log("product unsuccessfull update", updateProduct);
-        alert("Failed to update product. Please try again.");
+        toast.error("Failed to update product", {
+          position: "top-right",
+          autoClose: 2000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "colored",
+        });
       });
   };
 

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
+import {toast } from "react-toastify";
 
 const AddProduct = () => {
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
@@ -43,11 +44,30 @@ const AddProduct = () => {
       })
       .then((response) => {
         console.log("Product added successfully:", response.data);
-        alert("Product added successfully");
+        toast.success("Product added successfully", {
+          position: "top-right",
+          autoClose: 2000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "colored",
+        });
+
       })
       .catch((error) => {
         console.error("Error adding product:", error);
-        alert("Error adding product");
+        toast.error("Error adding product", {
+          position: "top-right",
+          autoClose: 2000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "colored",
+        });
       });
   };
 
