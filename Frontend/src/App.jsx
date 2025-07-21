@@ -1,5 +1,5 @@
 import "./App.css";
-import React, { useState, useEffect } from "react";
+import React, { useState} from "react";
 import Home from "./components/Home";
 import Navbar from "./components/Navbar";
 import Cart from "./components/Cart";
@@ -19,7 +19,6 @@ function App() {
 
   const handleCategorySelect = (category) => {
     setSelectedCategory(category);
-    console.log("Selected category:", category);
   };
   const addToCart = (product) => {
     const existingProduct = cart.find((item) => item.id === product.id);
@@ -39,14 +38,10 @@ function App() {
   return (
     <AppProvider>
       <BrowserRouter>
-        <Navbar onSelectCategory={handleCategorySelect}
-         />
+        <Navbar onSelectCategory={handleCategorySelect} />
         <Routes>
-          <Route
-            path="/"
-            element={
-              <Home addToCart={addToCart} selectedCategory={selectedCategory}
-              />
+          <Route path="/" element={
+               <Home addToCart={addToCart} selectedCategory={selectedCategory} />
             }
           />
           <Route path="/add_product" element={<AddProduct />} />
