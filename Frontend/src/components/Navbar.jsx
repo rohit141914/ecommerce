@@ -168,44 +168,52 @@ const Navbar = ({ onSelectCategory, onSearch }) => {
               id="navbarSupportedContent"
             >
               <ul className="navbar-nav me-auto mb-2 mb-lg-0">
+              {isLoggedIn && (
                 <li className="nav-item">
+                {/* Always show Home link regardless of login status */}
                   <a className="nav-link active" aria-current="page" href="/">
                     Home
                   </a>
                 </li>
-                <li className="nav-item">
-                  <a className="nav-link" href="/add_product">
-                    Add Product
-                  </a>
-                </li>
+              )}
 
-                <li className="nav-item dropdown">
-                  <a
-                    className="nav-link dropdown-toggle"
-                    href="/"
-                    role="button"
-                    data-bs-toggle="dropdown"
-                    aria-expanded="false"
-                  >
-                    Categories
-                  </a>
+                {/* Show these navigation items only when user is logged in */}
+                {isLoggedIn && (
+                  <>
+                    <li className="nav-item">
+                      <a className="nav-link" href="/add_product">
+                        Add Product
+                      </a>
+                    </li>
 
-                  <ul className="dropdown-menu">
-                    {categories.map((category) => (
-                      <li key={category}>
-                        <button
-                          className="dropdown-item"
-                          onClick={() => handleCategorySelect(category)}
-                        >
-                          {category}
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                </li>
+                    <li className="nav-item dropdown">
+                      <a
+                        className="nav-link dropdown-toggle"
+                        href="/"
+                        role="button"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false"
+                      >
+                        Categories
+                      </a>
 
-                <li className="nav-item"></li>
+                      <ul className="dropdown-menu">
+                        {categories.map((category) => (
+                          <li key={category}>
+                            <button
+                              className="dropdown-item"
+                              onClick={() => handleCategorySelect(category)}
+                            >
+                              {category}
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    </li>
+                  </>
+                )}
               </ul>
+
               <button className="theme-btn" onClick={() => toggleTheme()}>
                 {theme === "dark-theme" ? (
                   <i className="bi bi-moon-fill"></i>
@@ -214,42 +222,34 @@ const Navbar = ({ onSelectCategory, onSearch }) => {
                 )}
               </button>
 
-              {/* Sign in/out button */}
-              {/* <button
-                className="btn btn-outline-primary mx-2"
-                onClick={isLoggedIn ? handleSignOutClick : handleSignInClick}
-              >
-                {isLoggedIn ? (
-                  <>
-                    <i className="bi bi-box-arrow-right me-1"></i>Sign Out
-                  </>
-                ) : (
-                  <>
-                    <i className="bi bi-box-arrow-in-right me-1"></i>Sign In
-                  </>
-                )}
-              </button> */}
-
               <div className="d-flex align-items-center cart gap-1">
-                <a href="/cart" className="nav-link text-dark">
-                  <i
-                    className="bi bi-cart me-3 ms-2"
-                    style={{ display: "flex", alignItems: "center" }}
-                  >
-                    Cart
-                  </i>
-                </a>
-                <input
-                  className="form-control me-2"
-                  type="search"
-                  placeholder="Search"
-                  aria-label="Search"
-                  value={input}
-                  onChange={(e) => handleChange(e.target.value)}
-                  onFocus={() => setSearchFocused(true)} // Set searchFocused to true when search bar is focused
-                  onBlur={() => setSearchFocused(false)} // Set searchFocused to false when search bar loses focus
-                />
-                {showSearchResults && (
+                {/* Show Cart only when logged in */}
+                {isLoggedIn && (
+                  <a href="/cart" className="nav-link text-dark">
+                    <i
+                      className="bi bi-cart me-3 ms-2"
+                      style={{ display: "flex", alignItems: "center" }}
+                    >
+                      Cart
+                    </i>
+                  </a>
+                )}
+
+                {/* Show Search only when logged in */}
+                {isLoggedIn && (
+                  <input
+                    className="form-control me-2"
+                    type="search"
+                    placeholder="Search"
+                    aria-label="Search"
+                    value={input}
+                    onChange={(e) => handleChange(e.target.value)}
+                    onFocus={() => setSearchFocused(true)}
+                    onBlur={() => setSearchFocused(false)}
+                  />
+                )}
+                {/* Only show search results if user is logged in and search is active */}
+                {isLoggedIn && showSearchResults && (
                   <ul className="list-group">
                     {searchResults.length > 0
                       ? searchResults.map((result) => (

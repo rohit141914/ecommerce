@@ -6,8 +6,8 @@ import apiUtils from "../apiUtils/apiUtils";
 const Signin = () => {
   const navigator = useNavigate();
   const [form, setForm] = useState({
-    email: "",
-    password: "",
+    email: "rohitnainindian@gmail.com",
+    password: "testtest",
   });
   const [loading, setLoading] = useState(false);
 
@@ -44,6 +44,12 @@ const Signin = () => {
       }}
     >
       <h2 className="mb-4 text-center">Sign In</h2>
+        <div className="alert alert-info mb-3" role="alert">
+        <small>
+          <strong>Test Credentials:</strong> Email and password are pre-filled for testing purposes.
+          Just click "Sign In" to try the app.
+        </small>
+      </div>
       <form onSubmit={handleSubmit}>
         <div className="mb-3">
           <label className="form-label adaptive-label" htmlFor="signin-email">
