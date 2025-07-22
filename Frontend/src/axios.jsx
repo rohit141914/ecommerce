@@ -42,7 +42,7 @@ API.interceptors.response.use(
       }
       
       // Show notification if not already on signin page
-      if (!window.location.pathname.includes('/signin')) {
+      if (!window.location.pathname.includes('/signin') && !window.location.pathname.includes('/signup')) {
         toast.error("Session expired. Please sign in again.", { theme: "colored" });
         
         // Navigate to signin page (with a slight delay to allow the toast to show)
