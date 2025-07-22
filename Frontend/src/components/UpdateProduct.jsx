@@ -45,11 +45,6 @@ const UpdateProduct = () => {
     fetchProduct();
   }, [id]);
 
-  // Monitor image changes for debugging if needed
-  useEffect(() => {
-    console.log("Image updated:", image ? image.name : "No image");
-  }, [image]);
-
   const convertUrlToFile = async (blobData, fileName) => {
     const file = new File([blobData], fileName, { type: blobData.type });
     return file;
@@ -57,11 +52,6 @@ const UpdateProduct = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Submitting update for:", {
-      id,
-      product: updateProduct,
-      image,
-    });
     try {
       // Check if we have all required fields
       if (

@@ -63,17 +63,68 @@ const Product = () => {
   };
 
   const handleAddToCart = () => {
-    addToCart(product);
-    toast.success("Added to cart!", {
-      position: "top-right",
-      autoClose: 2000,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-      progress: undefined,
-      theme: "colored",
-    });
+    // Check if product is in stock before adding to cart
+    if (!product || product.stockQuantity <= 0) {
+      toast.error("This product is out of stock", {
+        position: "top-right",
+        autoClose: 2000,
+        theme: "colored",
+      });
+      return;
+    }
+
+    // Add to cart with all necessary product details
+    // Make sure to include ALL required properties
+    const productToAdd = {
+      id: product.id,
+      name: product.name,
+      brand: product.brand,
+      price: product.price,
+      stockQuantity: product.stockQuantity,
+      category: product.category,
+      description: product.description,
+      available: product.available,
+      imageName: product.imageName,
+      imageType: product.imageType,
+      releaseDate: product.releaseDate,
+    };
+
+    try {
+      // Add to cart context
+      addToCart(productToAdd);
+
+      // Force update local storage as a backup
+      const currentCart = JSON.parse(localStorage.getItem("cart")) || [];
+      const existingItemIndex = currentCart.findIndex(
+        (item) => item.id === productToAdd.id
+      );
+
+      if (existingItemIndex >= 0) {
+        currentCart[existingItemIndex].quantity += 1;
+      } else {
+        currentCart.push({ ...productToAdd, quantity: 1 });
+      }
+
+      localStorage.setItem("cart", JSON.stringify(currentCart));
+
+      toast.success("Added to cart!", {
+        position: "top-right",
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "colored",
+      });
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      toast.error("Failed to add item to cart", {
+        position: "top-right",
+        autoClose: 2000,
+        theme: "colored",
+      });
+    }
   };
   if (!product) {
     return (

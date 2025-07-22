@@ -54,14 +54,23 @@ export const AppProvider = ({ children }) => {
 
   const clearCart = () => {
     setCart([]);
+    localStorage.setItem("cart", JSON.stringify([]));
   };
 
+  // Load initial data and listen for auth changes
   useEffect(() => {
+    // Initial data load
     refreshData();
-    // Only call refreshData once on mount
-    // Remove second useEffect for localStorage update
+
+    // Listen for auth changes to refresh data
+    const handleAuthChange = () => refreshData();
+    window.addEventListener("auth-changed", handleAuthChange);
+
+    // Cleanup
+    return () => window.removeEventListener("auth-changed", handleAuthChange);
   }, []);
 
+  // Sync cart with localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem("cart", JSON.stringify(cart));
   }, [cart]);

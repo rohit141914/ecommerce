@@ -14,12 +14,20 @@ const Cart = () => {
   const [showModal, setShowModal] = useState(false);
   const imageCache = useRef({}); // cache for imageUrl and imageFile
 
+  // Load cart items and fetch their images when cart changes
   useEffect(() => {
     const fetchImagesAndUpdateCart = async () => {
       try {
-        const response = await axios.get(`${BACKEND_URL}/api/products`,{
+        // Verify we have items in the cart
+        if (!cart || cart.length === 0) {
+          setCartItems([]);
+          return;
+        }
+
+        // Get all products to validate cart items exist
+        const response = await axios.get(`${BACKEND_URL}/api/products`, {
           headers: {
-            Authorization: `${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         });
         const backendProductIds = response.data.map((product) => product.id);
@@ -40,12 +48,17 @@ const Cart = () => {
             try {
               const response = await axios.get(
                 `${BACKEND_URL}/api/product/${item.id}/image`,
-                { responseType: "blob", headers: { Authorization: `${localStorage.getItem("token")}` } }
+                {
+                  responseType: "blob",
+                  headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                  },
+                }
               );
               const imageUrl = URL.createObjectURL(response.data);
               const imageFile = await convertUrlToFile(
                 response.data,
-                response.data.imageName || "default.png"
+                item.imageName || "default.png"
               );
               imageCache.current[item.id] = { imageUrl, imageFile };
               return { ...item, imageUrl };
@@ -61,9 +74,16 @@ const Cart = () => {
       }
     };
 
-    if (cart.length) {
-      fetchImagesAndUpdateCart();
-    }
+    // Fetch images when cart changes
+    fetchImagesAndUpdateCart();
+
+    // Also fetch when component mounts
+    return () => {
+      // Clean up any pending image URLs when component unmounts
+      Object.values(imageCache.current).forEach((cache) => {
+        if (cache.imageUrl) URL.revokeObjectURL(cache.imageUrl);
+      });
+    };
   }, [cart]);
 
   useEffect(() => {
@@ -81,35 +101,55 @@ const Cart = () => {
   };
 
   const handleIncreaseQuantity = (itemId) => {
-    const newCartItems = cartItems.map((item) => {
-      if (item.id === itemId) {
-        if (item.quantity < item.stockQuantity) {
-          return { ...item, quantity: item.quantity + 1 };
-        } else {
-          toast.error("Cannot add more than available stock", {
-            position: "top-right",
-            autoClose: 2000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            progress: undefined,
-            theme: "colored",
-          });
-        }
-      }
-      return item;
-    });
-    setCartItems(newCartItems);
+    const cartItem = cartItems.find((item) => item.id === itemId);
+
+    if (cartItem && cartItem.quantity < cartItem.stockQuantity) {
+      // Update local state
+      const newCartItems = cartItems.map((item) =>
+        item.id === itemId ? { ...item, quantity: item.quantity + 1 } : item
+      );
+      setCartItems(newCartItems);
+
+      // Update localStorage directly to ensure sync
+      const localStorageCart = JSON.parse(localStorage.getItem("cart")) || [];
+      const updatedLocalStorageCart = localStorageCart.map((item) =>
+        item.id === itemId ? { ...item, quantity: item.quantity + 1 } : item
+      );
+      localStorage.setItem("cart", JSON.stringify(updatedLocalStorageCart));
+    } else {
+      toast.error("Cannot add more than available stock", {
+        position: "top-right",
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "colored",
+      });
+    }
   };
 
   const handleDecreaseQuantity = (itemId) => {
-    const newCartItems = cartItems.map((item) =>
-      item.id === itemId
-        ? { ...item, quantity: Math.max(item.quantity - 1, 1) }
-        : item
-    );
-    setCartItems(newCartItems);
+    // Find the item in the cart
+    const cartItem = cartItems.find((item) => item.id === itemId);
+
+    if (cartItem) {
+      const newQuantity = Math.max(cartItem.quantity - 1, 1);
+
+      // Update local state
+      const newCartItems = cartItems.map((item) =>
+        item.id === itemId ? { ...item, quantity: newQuantity } : item
+      );
+      setCartItems(newCartItems);
+
+      // Update localStorage directly to ensure sync
+      const localStorageCart = JSON.parse(localStorage.getItem("cart")) || [];
+      const updatedLocalStorageCart = localStorageCart.map((item) =>
+        item.id === itemId ? { ...item, quantity: newQuantity } : item
+      );
+      localStorage.setItem("cart", JSON.stringify(updatedLocalStorageCart));
+    }
   };
 
   const handleRemoveFromCart = (itemId) => {
@@ -120,6 +160,9 @@ const Cart = () => {
 
   const handleCheckout = async () => {
     try {
+      // Show loading toast
+      const toastId = toast.loading("Processing checkout...");
+
       for (const item of cartItems) {
         const { imageUrl, imageName, imageData, imageType, quantity, ...rest } =
           item;
@@ -144,7 +187,10 @@ const Cart = () => {
         );
 
         await axios.put(`${BACKEND_URL}/api/product/${item.id}`, cartProduct, {
-          headers: { "Content-Type": "multipart/form-data", "Authorization": localStorage.getItem("token") },
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
         });
       }
       clearCart();
