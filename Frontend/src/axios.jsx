@@ -11,19 +11,23 @@ const API = axios.create({
 API.interceptors.request.use(
   (config) => {
     // Get the token from localStorage
-    const token = localStorage.getItem('token');
-    
+    const token = localStorage.getItem("token");
+
     // If token exists, add it to the Authorization header
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    
+
     return config;
   },
   (error) => {
     return Promise.reject(error);
   }
 );
+
+// Track when the last 401 error was shown to prevent multiple toasts
+let lastAuthErrorShown = 0;
+const AUTH_ERROR_COOLDOWN = 3000; // 3 seconds cooldown between auth error messages
 
 // Add a response interceptor to handle 401 Unauthorized errors
 API.interceptors.response.use(
@@ -34,20 +38,32 @@ API.interceptors.response.use(
     // If the error status is 401 (Unauthorized)
     if (error.response && error.response.status === 401) {
       // Clear token if it exists (likely expired or invalid)
-      if (localStorage.getItem('token')) {
-        localStorage.removeItem('token');
-        
+      if (localStorage.getItem("token")) {
+        localStorage.removeItem("token");
+
         // Dispatch custom event to notify components of auth change
-        window.dispatchEvent(new Event('auth-changed'));
+        window.dispatchEvent(new Event("auth-changed"));
       }
-      
-      // Show notification if not already on signin page
-      if (!window.location.pathname.includes('/signin') && !window.location.pathname.includes('/signup')) {
-        toast.error("Session expired. Please sign in again.", { theme: "colored" });
-        
+
+      const currentTime = Date.now();
+      // Only show notification if we haven't shown one recently and not on auth pages
+      if (
+        currentTime - lastAuthErrorShown > AUTH_ERROR_COOLDOWN &&
+        !window.location.pathname.includes("/signin") &&
+        !window.location.pathname.includes("/signup")
+      ) {
+        // Update last error timestamp
+        lastAuthErrorShown = currentTime;
+
+        // Show single toast
+        toast.error("Please sign in", {
+          theme: "colored",
+          toastId: "auth-error", // Prevents duplicate toasts with the same ID
+        });
+
         // Navigate to signin page (with a slight delay to allow the toast to show)
         setTimeout(() => {
-          window.location.href = '/signin';
+          window.location.href = "/signin";
         }, 1500);
       }
     }

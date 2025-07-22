@@ -23,7 +23,7 @@ public class WebConfig implements WebMvcConfigurer {
                 )
                 .excludePathPatterns(
                     "/api/auth/**",           // Exclude auth endpoints
-                    "/api/products",          // Allow public product listing
+                    // "/api/products",          // Allow public product listing
                     "/api/product/*/image",   // Allow public image access
                     "/api/products/search"    // Allow public product search
                 );
