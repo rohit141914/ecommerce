@@ -1,12 +1,11 @@
 import React, { useContext, useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
-import axios from "axios";
 import AppContext from "../Context/Context";
 import unplugged from "../assets/unplugged.png";
 import { toast } from "react-toastify";
+import apiUtils from "../apiUtils/apiUtils";
 
 const Home = ({ selectedCategory }) => {
-  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
   const { data, isError, addToCart, refreshData } = useContext(AppContext);
   const [products, setProducts] = useState([]);
   const [isDataFetched, setIsDataFetched] = useState(false);
@@ -45,11 +44,7 @@ const Home = ({ selectedCategory }) => {
               return { ...product, imageUrl: imageCache.current[product.id] };
             }
             try {
-              const response = await axios.get(
-                `${BACKEND_URL}/api/product/${product.id}/image`,
-                { responseType: "blob" }
-              );
-              const imageUrl = URL.createObjectURL(response.data);
+              const imageUrl = await apiUtils.products.getProductImage(product.id);
               // Cache the image URL
               imageCache.current[product.id] = imageUrl;
               return { ...product, imageUrl };
@@ -76,17 +71,17 @@ const Home = ({ selectedCategory }) => {
     ? products.filter((product) => product.category === selectedCategory)
     : products;
 
-  if (isError) {
-    return (
-      <h2 className="text-center" style={{ padding: "18rem" }}>
-        <img
-          src={unplugged}
-          alt="Error"
-          style={{ width: "100px", height: "100px" }}
-        />
-      </h2>
-    );
-  }
+  // if (isError) {
+  //   return (
+  //     <h2 className="text-center" style={{ padding: "18rem" }}>
+  //       <img
+  //         src={unplugged}
+  //         alt="Error"
+  //         style={{ width: "100px", height: "100px" }}
+  //       />
+  //     </h2>
+  //   );
+  // }
   if (isLoading) {
     return (
       <div
@@ -226,7 +221,7 @@ const Home = ({ selectedCategory }) => {
                           marginBottom: "5px",
                         }}
                       >
-                        <i class="bi bi-currency-rupee"></i>
+                        <i className="bi bi-currency-rupee"></i>
                         {price}
                       </h5>
                     </div>

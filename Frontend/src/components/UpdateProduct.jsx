@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import axios from "axios";
 import { toast } from "react-toastify";
+import apiUtils from "../apiUtils/apiUtils";
 
 const UpdateProduct = () => {
-  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
   const { id } = useParams();
   const [product, setProduct] = useState({});
   const [image, setImage] = useState();
@@ -23,30 +22,32 @@ const UpdateProduct = () => {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const response = await axios.get(`${BACKEND_URL}/api/product/${id}`);
+        // Get product details
+        const productData = await apiUtils.products.getProductById(id);
+        setProduct(productData);
+        setUpdateProduct(productData);
 
-        setProduct(response.data);
-
-        const responseImage = await axios.get(
-          `${BACKEND_URL}/api/product/${id}/image`,
-          { responseType: "blob" }
-        );
+        // Get product image as blob
+        const imageBlob = await fetch(
+          await apiUtils.products.getProductImage(id)
+        ).then((res) => res.blob());
         const imageFile = await convertUrlToFile(
-          responseImage.data,
-          response.data.imageName
+          imageBlob,
+          productData.imageName
         );
         setImage(imageFile);
-        setUpdateProduct(response.data);
       } catch (error) {
         console.error("Error fetching product:", error);
+        toast.error("Error fetching product details");
       }
     };
 
     fetchProduct();
   }, [id]);
 
+  // Monitor image changes for debugging if needed
   useEffect(() => {
-    console.log("image Updated", image);
+    console.log("Image updated:", image ? image.name : "No image");
   }, [image]);
 
   const convertUrlToFile = async (blobData, fileName) => {
@@ -56,46 +57,54 @@ const UpdateProduct = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("images", image);
-    console.log("productsdfsfsf", updateProduct);
-    const updatedProduct = new FormData();
-    updatedProduct.append("imageFile", image);
-    updatedProduct.append(
-      "product",
-      new Blob([JSON.stringify(updateProduct)], { type: "application/json" })
-    );
+    console.log("Submitting update for:", {
+      id,
+      product: updateProduct,
+      image,
+    });
+    try {
+      // Check if we have all required fields
+      if (
+        !updateProduct.name ||
+        !updateProduct.description ||
+        !updateProduct.price
+      ) {
+        toast.warning("Please fill all required fields");
+        return;
+      }
 
-    console.log("formData : ", updatedProduct);
-    axios
-      .put(`${BACKEND_URL}/api/product/${id}`, updatedProduct, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      })
-      .then((response) => {
-        toast.success("Product updated successfully", {
-          position: "top-right",
-          autoClose: 2000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          theme: "colored",
-        });
-      })
-      .catch((error) => {
-        toast.error("Failed to update product", {
-          position: "top-right",
-          autoClose: 2000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          theme: "colored",
-        });
+      await apiUtils.products.updateProduct(
+        id,
+        updateProduct,
+        image
+      );
+      toast.success("Product updated successfully", {
+        position: "top-right",
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "colored",
       });
+    } catch (err) {
+      console.error("Error updating product:", err);
+      console.error("Error response:", err.response?.data);
+      toast.error(
+        `Failed to update product: ${err.response?.data || err.message}`,
+        {
+          position: "top-right",
+          autoClose: 2000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "colored",
+        }
+      );
+    }
   };
 
   const handleChange = (e) => {

@@ -1,5 +1,5 @@
-import axios from "../axios";
 import { useState, useEffect, createContext } from "react";
+import apiUtils from "../apiUtils/apiUtils";
 
 const AppContext = createContext({
   data: [],
@@ -38,17 +38,15 @@ export const AppProvider = ({ children }) => {
   };
 
   const removeFromCart = (productId) => {
-    console.log("productID", productId);
     const updatedCart = cart.filter((item) => item.id !== productId);
     setCart(updatedCart);
     localStorage.setItem("cart", JSON.stringify(updatedCart));
-    console.log("CART", cart);
   };
 
   const refreshData = async () => {
     try {
-      const response = await axios.get("/products");
-      setData(response.data);
+      const productsData = await apiUtils.products.getAllProducts();
+      setData(productsData);
     } catch (error) {
       setIsError(error.message);
     }

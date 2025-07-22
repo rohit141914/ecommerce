@@ -1,10 +1,8 @@
-import React, { useState } from "react";
-import axios from "axios";
-import {toast } from "react-toastify";
+import { useState } from "react";
+import { toast } from "react-toastify";
+import apiUtils from "../apiUtils/apiUtils";
 
 const AddProduct = () => {
-  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
-
   const [product, setProduct] = useState({
     name: "",
     brand: "",
@@ -27,48 +25,71 @@ const AddProduct = () => {
     // setProduct({...product, image: e.target.files[0]})
   };
 
-  const submitHandler = (event) => {
+  const submitHandler = async (event) => {
     event.preventDefault();
-    const formData = new FormData();
-    formData.append("imageFile", image);
-    formData.append(
-      "product",
-      new Blob([JSON.stringify(product)], { type: "application/json" })
-    );
 
-    axios
-      .post(`${BACKEND_URL}/api/product`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      })
-      .then((response) => {
-        console.log("Product added successfully:", response.data);
-        toast.success("Product added successfully", {
-          position: "top-right",
-          autoClose: 2000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          theme: "colored",
-        });
-
-      })
-      .catch((error) => {
-        console.error("Error adding product:", error);
-        toast.error("Error adding product", {
-          position: "top-right",
-          autoClose: 2000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          theme: "colored",
-        });
+    // Check authentication status before proceeding
+    const token = localStorage.getItem("token");
+    if (!token) {
+      toast.error("You need to sign in to add products", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "colored",
       });
+      // Redirect to sign in page
+      setTimeout(() => {
+        window.location.href = "/signin";
+      }, 1500);
+      return;
+    }
+
+    try {
+      const result = await apiUtils.products.addProduct(product, image);
+      toast.success("Product added successfully", {
+        position: "top-right",
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "colored",
+      });
+
+      // Reset form
+      setProduct({
+        name: "",
+        brand: "",
+        description: "",
+        price: "",
+        category: "",
+        stockQuantity: "",
+        releaseDate: "",
+        available: false,
+      });
+      setImage(null);
+    } catch (error) {
+      console.error("Error adding product:", error);
+      console.error("Error details:", error.response?.data || error.message);
+      toast.error(
+        `Error adding product: ${error.response?.data || error.message}`,
+        {
+          position: "top-right",
+          autoClose: 2000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "colored",
+        }
+      );
+    }
   };
 
   return (

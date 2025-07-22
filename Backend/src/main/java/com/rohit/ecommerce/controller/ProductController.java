@@ -18,12 +18,20 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.rohit.ecommerce.middleware.RequiresAuth;
+
 import com.rohit.ecommerce.model.Product;
 import com.rohit.ecommerce.service.ProductService;
 
 @RestController
 @CrossOrigin
 @RequestMapping("/api")
+/**
+ * ProductController handles all product-related operations.
+ * Most endpoints in this controller are protected by AuthInterceptor,
+ * which requires a valid JWT token in the Authorization header (Bearer format).
+ * Public endpoints: GET /api/products, GET /api/product/{id}/image, GET /api/products/search
+ */
 public class ProductController {
 
     @Autowired
@@ -35,7 +43,9 @@ public class ProductController {
 
         return new ResponseEntity<>(null != service.getAllProducts() ? service.getAllProducts() : List.of(), HttpStatus.OK);
     }
+    
     @GetMapping("/product/{id}")
+    @RequiresAuth(description = "Get product details by ID - requires authentication")
     public ResponseEntity<Product> getProductById(@PathVariable String id) {
         Product product = service.getProductById(id);
         if (product != null) {
@@ -45,6 +55,7 @@ public class ProductController {
         }
     }
     @PostMapping("/product")
+    @RequiresAuth(description = "Add new product - requires authentication")
     public ResponseEntity<?> addProduct(@RequestPart Product product, @RequestPart MultipartFile imageFile) {
         try {
             Product savedProduct = service.addProduct(product, imageFile);
@@ -68,12 +79,18 @@ public class ProductController {
     }
 
     @PutMapping("/product/{id}")
-    public ResponseEntity<String> updateProduct(@PathVariable String id, @RequestPart Product product, @RequestPart MultipartFile imageFile) {
+    @RequiresAuth(description = "Update product - requires authentication")
+    public ResponseEntity<String> updateProduct(@PathVariable String id, @RequestPart Product product, @RequestPart(required = false) MultipartFile imageFile) {
+        
         Product product2=null;
         try{
             product2 = service.updateProduct(id,product, imageFile);
         } catch (IOException e) {
-            return new ResponseEntity<>("Failed to update", HttpStatus.BAD_REQUEST);
+            e.printStackTrace();
+            return new ResponseEntity<>("Failed to update: " + e.getMessage(), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>("Unexpected error: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
         if (product2 != null) {
             return new ResponseEntity<>("Product updated successfully", HttpStatus.OK);
@@ -83,6 +100,7 @@ public class ProductController {
     }
 
     @DeleteMapping("/product/{id}")
+    @RequiresAuth(description = "Delete product - requires authentication")
     public ResponseEntity<String> deleteProduct(@PathVariable String id) {
         Product product = service.getProductById(id);
         if (product != null) {

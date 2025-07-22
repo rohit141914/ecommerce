@@ -6,6 +6,8 @@ import Cart from "./components/Cart";
 import AddProduct from "./components/AddProduct";
 import Product from "./components/Product";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Signup from "./components/Signup";
+import Signin from "./components/Signin";
 import { AppProvider } from "./Context/Context";
 import UpdateProduct from "./components/UpdateProduct";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -52,6 +54,8 @@ function App() {
           <Route path="product/:id" element={<Product />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/product/update/:id" element={<UpdateProduct />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/signin" element={<Signin />} />
         </Routes>
         <ToastContainer />
       </BrowserRouter>

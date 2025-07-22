@@ -2,24 +2,22 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useContext, useEffect } from "react";
 import { useState } from "react";
 import AppContext from "../Context/Context";
-import axios from "../axios";
 import UpdateProduct from "./UpdateProduct";
 import { toast } from "react-toastify";
+import apiUtils from "../apiUtils/apiUtils";
 const Product = () => {
   const { id } = useParams();
-  const { data, addToCart, removeFromCart, cart, refreshData } =
-    useContext(AppContext);
+  const { addToCart, removeFromCart, refreshData } = useContext(AppContext);
   const [product, setProduct] = useState(null);
   const [imageUrl, setImageUrl] = useState("");
   const navigate = useNavigate();
-  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const response = await axios.get(`${BACKEND_URL}/api/product/${id}`);
-        setProduct(response.data);
-        if (response.data.imageName) {
+        const productData = await apiUtils.products.getProductById(id);
+        setProduct(productData);
+        if (productData.imageName) {
           fetchImage();
         }
       } catch (error) {
@@ -28,11 +26,12 @@ const Product = () => {
     };
 
     const fetchImage = async () => {
-      const response = await axios.get(
-        `${BACKEND_URL}/api/product/${id}/image`,
-        { responseType: "blob" }
-      );
-      setImageUrl(URL.createObjectURL(response.data));
+      try {
+        const imageUrl = await apiUtils.products.getProductImage(id);
+        setImageUrl(imageUrl);
+      } catch (error) {
+        console.error("Error fetching product image:", error);
+      }
     };
 
     fetchProduct();
@@ -40,7 +39,7 @@ const Product = () => {
 
   const deleteProduct = async () => {
     try {
-      await axios.delete(`${BACKEND_URL}/api/product/${id}`);
+      await apiUtils.products.deleteProduct(id);
       removeFromCart(id);
       toast.success("Product deleted successfully", {
         position: "top-right",

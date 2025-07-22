@@ -16,9 +16,12 @@ const Cart = () => {
 
   useEffect(() => {
     const fetchImagesAndUpdateCart = async () => {
-      console.log("Cart", cart);
       try {
-        const response = await axios.get(`${BACKEND_URL}/api/products`);
+        const response = await axios.get(`${BACKEND_URL}/api/products`,{
+          headers: {
+            Authorization: `${localStorage.getItem("token")}`,
+          },
+        });
         const backendProductIds = response.data.map((product) => product.id);
 
         const updatedCartItems = cart.filter((item) =>
@@ -37,7 +40,7 @@ const Cart = () => {
             try {
               const response = await axios.get(
                 `${BACKEND_URL}/api/product/${item.id}/image`,
-                { responseType: "blob" }
+                { responseType: "blob", headers: { Authorization: `${localStorage.getItem("token")}` } }
               );
               const imageUrl = URL.createObjectURL(response.data);
               const imageFile = await convertUrlToFile(
@@ -52,7 +55,6 @@ const Cart = () => {
             }
           })
         );
-        console.log("cart", cart);
         setCartItems(cartItemsWithImages);
       } catch (error) {
         console.error("Error fetching product data:", error);
@@ -127,7 +129,6 @@ const Cart = () => {
           ...rest,
           stockQuantity: updatedStockQuantity,
         };
-        console.log("updated product data", updatedProductData);
 
         const cartProduct = new FormData();
         // Retrieve the cached image file (if missing, fallback to a placeholder or skip appending)
@@ -143,7 +144,7 @@ const Cart = () => {
         );
 
         await axios.put(`${BACKEND_URL}/api/product/${item.id}`, cartProduct, {
-          headers: { "Content-Type": "multipart/form-data" },
+          headers: { "Content-Type": "multipart/form-data", "Authorization": localStorage.getItem("token") },
         });
       }
       clearCart();
